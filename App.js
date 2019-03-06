@@ -5,6 +5,8 @@ import Application from './src/Application';
 import axios from 'axios';
 
 // new Date(1551884400000).toUTCString()
+const location = "singapore,sg";
+const APPID = "e7f37a463187f09507c7c047afd44400"
 
 export default class App extends Component {
 
@@ -20,7 +22,7 @@ export default class App extends Component {
   }
 
   getData = async () => {
-    const url = "http://api.openweathermap.org/data/2.5/forecast?q=singapore,sg&APPID=e7f37a463187f09507c7c047afd44400";
+    const url = "http://api.openweathermap.org/data/2.5/forecast?q=" + location + "&APPID=" + APPID;
     const result = await axios.get(url);
     let data = result.data.list;
     let temp = data[0];
