@@ -4,50 +4,43 @@ import { Text, View, Left, Spinner, ListItem, Header, Body, Right, Title, Icon }
 import Application from './src/Application';
 import axios from 'axios';
 
-const axiosConfig = {
-  headers: {
-    'Content-Type': 'application/json',
-  }
-};
-
-const data = [
-  {
-    'date': '11 Jan 2017, Wed',
-    'temperature': '79-81',
-    'weather': 'Thunderstorm'
-  }, {
-    'date': '12 Jan 2017, Thu',
-    'temperature': '79-81',
-    'weather': 'Thunderstorm'
-  }, {
-    'date': '13 Jan 2017, Fri',
-    'temperature': '79-81',
-    'weather': 'Thunderstorm'
-  }, {
-    'date': '14 Jan 2017, Sat',
-    'temperature': '79-81',
-    'weather': 'Thunderstorm'
-  }, {
-    'date': '15 Jan 2017, Sun',
-    'temperature': '79-81',
-    'weather': 'Thunderstorm'
-  }
-]
+// new Date(1551884400000).toUTCString()
 
 export default class App extends Component {
 
   constructor(props) {
     super(props);
+
+    this.state = {
+      data: [],
+      main: []
+    }
+
     this.getData();
   }
 
   getData = async () => {
-    await axios.get(
-      "https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='singapore,sg'&format=json&env=store://datatables.org/alltableswithkeys"
-    )
-      .then(function (result) {
-        console.warn(result);
-      });
+    const url = "http://api.openweathermap.org/data/2.5/forecast?q=singapore,sg&APPID=e7f37a463187f09507c7c047afd44400";
+    const result = await axios.get(url);
+    let data = result.data.list;
+    let temp = data[0];
+    let main = { date: '', temp: 0, weather: '' };
+    let data2 = [];
+
+    main.date = new Date(temp.dt * 1000).toUTCString();
+    main.temp = (((temp.main.temp - 273.15)*9/5)+32).toFixed(0);
+    main.weather = temp.weather[0].main;
+
+    for (let i = 0; i < data.length; i++) {
+      let sub = { date: '', temp_min: 0, temp_max: 0, weather: '' };
+      sub.date = new Date(data[i].dt * 1000).toUTCString();
+      sub.temp_min = (((data[i].main.temp_min- 273.15)*9/5)+32).toFixed(0);
+      sub.temp_max = (((data[i].main.temp_max- 273.15)*9/5)+32).toFixed(0);
+      sub.weather = data[i].weather[0].main;
+      data2.push(sub);
+    }
+
+    this.setState({ data: data2, main });
   }
 
   renderItem = ({ item }) => (
@@ -57,8 +50,9 @@ export default class App extends Component {
           <Text style={styles.list_date}>
             {item.date}
           </Text>
-          <Text style={ styles.list_temperature}>
-            {item.temperature}
+          <Text style={styles.list_temperature}>
+            {/* {item.temperature} */}
+            {item.temp_min} - {item.temp_max}
           </Text>
           <Text style={styles.list_weather}>
             {item.weather}
@@ -72,6 +66,7 @@ export default class App extends Component {
   );
 
   render() {
+    const { data, main } = this.state;
     if (data != null) {
       return (
         <Application backgroundColor={'white'}>
@@ -84,13 +79,14 @@ export default class App extends Component {
             </Header>
             <View style={styles.top_box}>
               <Text style={styles.today_date}>
-                Wed, 11 Jan 2017 01:10 PM GST
+                {/* Wed, 11 Jan 2017 01:10 PM GST */}
+                {main.date}
               </Text>
               <Text style={styles.today_temperature}>
-                82
+                {main.temp}
               </Text>
               <Text style={styles.today_weather}>
-                Thunderstorm
+                {main.weather}
               </Text>
             </View>
             <FlatList
@@ -151,6 +147,7 @@ const styles = StyleSheet.create({
     marginVertical: 2
   },
   list_date: {
+    fontSize: 15,
     fontWeight: 'bold'
   },
   icon: {
